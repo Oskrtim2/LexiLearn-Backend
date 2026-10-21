@@ -1,0 +1,109 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  STUDENT
+  TEACHER
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  role      Role     @default(STUDENT)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  student   Student?
+}
+
+model Student {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  firstName String
+  lastName  String
+  birthDate DateTime?
+  
+  attempts    ExerciseAttempt[]
+  progresses  Progress[]
+  assessments Assessment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Skill {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  category    String? // e.g., "Reading", "Phonetics", "Writing"
+  
+  exercises  Exercise[]
+  progresses Progress[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Exercise {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  skillId     String
+  skill       Skill    @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  difficulty  Int      @default(1) // 1 to 5
+  content     Json     // Flexible content structure
+  
+  attempts ExerciseAttempt[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ExerciseAttempt {
+  id         String   @id @default(uuid())
+  studentId  String
+  student    Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  exerciseId String
+  exercise   Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  
+  score      Int      // e.g., 0 to 100
+  isCorrect  Boolean
+  timeTaken  Int?     // Time taken in seconds
+  answerData Json?    // The raw answer submitted
+  
+  attemptDate DateTime @default(now())
+}
+
+model Progress {
+  id               String   @id @default(uuid())
+  studentId        String
+  student          Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  skillId          String
+  skill            Skill    @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  
+  proficiencyLevel Float    @default(0.0) // E.g., 0.0 to 100.0 percentage
+  needsPractice    Boolean  @default(true)
+  lastPracticed    DateTime @default(now())
+
+  @@unique([studentId, skillId])
+}
+
+model Assessment {
+  id             String   @id @default(uuid())
+  studentId      String
+  student        Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  
+  assessmentDate DateTime @default(now())
+  results        Json     // Structure detailing initial baseline
+  notes          String?
+}
