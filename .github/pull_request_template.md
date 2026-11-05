@@ -67,3 +67,5 @@ Evidencia adicional: logs, capturas, requests/responses o pasos manuales.
 ```text
 feat: mensaje del commit
 ```
+
+**Aceptación requerida:** cuenta contraria al autor (`@Oskrtim2` o `@juansem08`).
