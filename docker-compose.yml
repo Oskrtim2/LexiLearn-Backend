@@ -1,0 +1,57 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: lexilearn-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: lexilearn
+      POSTGRES_PASSWORD: lexilearn
+      POSTGRES_DB: lexilearn
+      POSTGRES_INITDB_ARGS: '--encoding=UTF8'
+    ports:
+      - '5432:5432'
+    volumes:
+      - lexilearn_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U lexilearn -d lexilearn']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: lexilearn-api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql://lexilearn:lexilearn@postgres:5432/lexilearn?schema=public
+      NODE_ENV: production
+      TESSERACT_CACHE_PATH: /app/.tesseract-cache
+    ports:
+      - '3000:3000'
+    volumes:
+      - lexilearn_tesseract_cache:/app/.tesseract-cache
+    command: sh -c "npx prisma migrate deploy && node dist/main.js"
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          "wget -q -O - http://127.0.0.1:3000/api/v1/health | grep -q '\"status\":\"ok\"' || exit 1",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    stop_grace_period: 30s
+    profiles: ['app']
+
+volumes:
+  lexilearn_postgres_data:
+  lexilearn_tesseract_cache:
