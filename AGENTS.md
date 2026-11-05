@@ -43,6 +43,11 @@ git pull --ff-only origin main
 
 - Si hay cambios locales sin commitear, no borrarlos ni sobrescribirlos. Preguntar antes de continuar.
 - `main` es la rama estable y debe permanecer desplegable.
+- Equipo autorizado del repositorio:
+  - `@Oskrtim2`: propietario y administrador del repositorio.
+  - `@juansem08`: colaborador y revisor.
+- Cada integrante sube sus ramas con su propia cuenta de GitHub. Nunca suplantar la cuenta del otro ni compartir tokens o credenciales.
+- Un pull request requiere la aprobación de la otra cuenta. El autor no puede aprobar su propio PR.
 - Para cambios funcionales (código, esquema, seguridad, tests) crear una rama desde `main`:
   - `feature/<descripcion>`
   - `fix/<descripcion>`
@@ -53,8 +58,10 @@ git pull --ff-only origin main
 - Preparar solo los archivos intencionales con `git add`.
 - Nunca commitear `.env`, credenciales, `node_modules`, `dist`, `coverage`, `.tesseract-cache`, archivos `*.traineddata`, `*.tsbuildinfo` ni logs.
 - Usar Conventional Commits, con mensajes claros en español. Ejemplos: `feat: agregar validación de audio`, `fix: corregir bloqueo de PIN`, `docs: actualizar guía de proveedores`.
+- Cada rama debe tener al menos un commit propio y un objetivo claro.
 - No incluir atribuciones a IA en commits, pull requests, comentarios ni archivos. Prohibido `Co-Authored-By` de asistentes, “Generated with…”, “Made with…” o textos equivalentes.
-- Las reglas de ramas, commits y pull requests se detallan en [`.agents/workflow.md`](.agents/workflow.md).
+- Las reglas de ramas, commits, aprobaciones y pull requests se detallan en [`.agents/workflow.md`](.agents/workflow.md).
+- La plantilla obligatoria del cuerpo de los PR está en [`.github/pull_request_template.md`](.github/pull_request_template.md).
 
 ## 4. Alcance actual
 

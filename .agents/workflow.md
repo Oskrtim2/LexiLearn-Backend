@@ -1,10 +1,31 @@
 # Flujo de trabajo — API Lexi Learn
 
-Este documento complementa [`AGENTS.md`](../AGENTS.md) y define el proceso de ramas, commits, pull requests y verificación para este repositorio.
+Este documento complementa [`AGENTS.md`](../AGENTS.md) y define el proceso de ramas, commits, pull requests, aprobaciones y verificación para este repositorio.
 
-## 1. Ramas
+## 1. Equipo y cuentas de GitHub
 
-- `main` es la rama estable y desplegable.
+El repositorio se trabaja con las siguientes cuentas:
+
+| Cuenta | Rol |
+| --- | --- |
+| `@Oskrtim2` | Propietario y administrador del repositorio |
+| `@juansem08` | Colaborador y revisor |
+
+Reglas de identidad:
+
+- Cada integrante sube sus ramas con su propia cuenta de GitHub.
+- No suplantar la cuenta del otro integrante.
+- No compartir tokens, contraseñas ni sesiones de Git Credential Manager.
+- Si se usa GitHub CLI, cambiar de cuenta explícitamente antes de trabajar:
+  - `gh auth switch --user Oskrtim2`
+  - `gh auth switch --user juansem08`
+- Una rama debe ser subida por la cuenta que la creó.
+- Ambas cuentas deben tener acceso de escritura al repositorio para poder crear ramas y revisar.
+- Solo el propietario administra colaboradores, secretos y reglas de protección del repositorio.
+
+## 2. Ramas
+
+- `main` es la rama estable, desplegable y protegida. No se trabaja directamente en ella para cambios funcionales.
 - Partir siempre de `main` actualizado.
 - Usar nombres descriptivos:
   - `feature/<descripcion>` para funcionalidad.
@@ -14,9 +35,12 @@ Este documento complementa [`AGENTS.md`](../AGENTS.md) y define el proceso de ra
   - `docs/<descripcion>` para documentación.
 - Los cambios exclusivamente documentales o de instrucciones para agentes pueden aplicarse en `main` cuando el usuario lo solicite explícitamente.
 - No trabajar directamente en `main` para cambios de código, seguridad, esquema o pruebas.
+- Cada rama debe tener al menos un commit propio.
+- Cada integrante trabaja únicamente en sus ramas. No reescribir ni eliminar ramas de la otra cuenta sin coordinarlo.
+- Al mergear el pull request se puede eliminar la rama remota.
 - Nunca reescribir una rama compartida ni hacer force-push sin autorización explícita.
 
-## 2. Sincronización antes de trabajar
+## 3. Sincronización antes de trabajar
 
 ```bash
 git status --short --branch
@@ -30,7 +54,7 @@ Si hay cambios locales:
 3. Preguntar antes de commitear, mover o descartar.
 4. Resolver conflictos antes de iniciar el cambio solicitado.
 
-## 3. Commits
+## 4. Commits
 
 Formato:
 
@@ -65,6 +89,7 @@ build(docker): persistir caché de Tesseract
 Reglas:
 
 - Un commit debe representar un cambio lógico.
+- Cada rama debe tener como mínimo un commit.
 - No mezclar refactorizaciones masivas con funcionalidad nueva.
 - No commitear archivos generados, dependencias, secretos ni archivos locales.
 - No incluir atribuciones a IA en el mensaje ni en el cuerpo:
@@ -74,57 +99,57 @@ Reglas:
   - Sin banners o firmas equivalentes.
 - El autor del commit debe ser el colaborador humano configurado en Git.
 
-## 4. Pull requests
+## 5. Pull requests
 
-Cuando se use pull request:
-
-- Base: `main`.
-- El título debe seguir el formato de Conventional Commits.
+- La base del PR es siempre `main`.
+- Todo cambio funcional debe llegar mediante pull request; no se mergea directamente en `main`.
+- Un PR requiere **1 aprobación de la cuenta contraria**:
+  - Un PR de `@Oskrtim2` debe ser aprobado por `@juansem08`.
+  - Un PR de `@juansem08` debe ser aprobado por `@Oskrtim2`.
+  - El autor nunca puede aprobar su propio PR.
+- La adaptación a una sola aprobación se debe a que el equipo actual tiene dos cuentas. Si se incorporan más integrantes, la regla puede elevarse a 2 aprobaciones.
+- Las aprobaciones deben emitirse sin comentarios de revisión: solo aprobar. Cualquier observación debe dejarse como comentario en el hilo antes de aprobar.
+- No hacer merge si:
+  - Falta la aprobación requerida.
+  - Hay conflictos sin resolver.
+  - Algún check de calidad está en rojo.
+  - Existen dudas funcionales o de accesibilidad sin resolver.
+- La plantilla del cuerpo del PR es obligatoria: [`.github/pull_request_template.md`](../.github/pull_request_template.md).
+- El título del PR debe seguir el formato de Conventional Commits.
 - Mantener el PR enfocado en un objetivo.
 - Incluir evidencia de pruebas y, si aplica, capturas o ejemplos de request/response.
-- No hacer merge con checks en rojo ni omitir reglas de protección configuradas en GitHub.
 - No hacer force-push a una rama con revisión activa sin avisar.
 - No incluir atribuciones a IA en la descripción, comentarios o revisión.
+- Borrar la rama remota después del merge cuando ya no sea necesaria.
 
-Plantilla sugerida:
+### Protección de `main`
 
-```markdown
-## Resumen
+El propietario del repositorio debe mantener activa una regla de protección sobre `main` que:
 
-Describe el problema y la solución en 2–5 líneas.
+- Exija pull request antes de mergear.
+- Exija al menos 1 aprobación de la cuenta contraria.
+- Impida autoaprobaciones.
+- Exija los checks de calidad aplicables.
+- Restrinja force-push y eliminación de la rama.
 
-## Cambios
+Si la protección no está activa, no se debe asumir que el flujo está aplicado. La regla se documenta aquí y debe configurarse en la configuración de GitHub del repositorio.
 
-- Cambio 1
-- Cambio 2
+### Estructura obligatoria del PR
 
-## Cómo probar
+La plantilla incluye:
 
-```bash
-npm run typecheck
-npm run lint
-npm test
-npm run test:e2e
-npm run build
-```
+- Banner del proyecto.
+- Cuenta autora del PR.
+- Resumen del cambio.
+- Lista de archivos y clases modificadas con su ruta.
+- Detalles técnicos.
+- Pruebas ejecutadas.
+- Impacto en variables de entorno, migraciones y contratos.
+- Checklist de accesibilidad, seguridad y calidad.
+- Rama de origen.
+- Commits incluidos.
 
-## Impacto
-
-- Variables de entorno nuevas: sí/no
-- Migraciones de Prisma: sí/no
-- Cambios en contratos de API: sí/no
-- Impacto en accesibilidad: descripción o “ninguno”
-
-## Checklist
-
-- [ ] DTOs y Swagger actualizados
-- [ ] Pruebas agregadas o actualizadas
-- [ ] Autorización y ownership revisados
-- [ ] Sin secretos ni artefactos locales
-- [ ] README/.env.example actualizados si corresponde
-```
-
-## 5. Verificación mínima
+## 6. Verificación mínima
 
 Ejecutar antes de cada commit o PR:
 
@@ -150,8 +175,9 @@ Requisitos:
 - No eliminar tests para ocultar fallos.
 - No introducir `any` explícito.
 - Reportar en el PR o en la entrega cualquier comando que no haya podido ejecutarse.
+- No hacer merge con checks pendientes o fallidos.
 
-## 6. Migraciones y datos
+## 7. Migraciones y datos
 
 - Los cambios de esquema van con migración de Prisma.
 - No editar migraciones ya aplicadas.
@@ -161,15 +187,16 @@ Requisitos:
 - El seed es solo para desarrollo/demostración.
 - No borrar volúmenes de PostgreSQL ni ejecutar `prisma migrate reset` sin autorización; son operaciones destructivas.
 
-## 7. Seguridad y secretos
+## 8. Seguridad y secretos
 
 - `.env` nunca se versiona.
 - Mantener `.env.example` sin secretos reales.
 - No incluir tokens, PINs, claves de AWS, credenciales de Google ni contraseñas en commits, logs, pruebas o documentación.
 - No desactivar autenticación, rate limiting, bloqueos de cuenta, validaciones de subida o filtros globales para facilitar una prueba.
 - Revisar que las respuestas de error no filtren detalles internos de proveedores o base de datos.
+- Las credenciales de GitHub son personales. No se comparten entre `@Oskrtim2` y `@juansem08`.
 
-## 8. Cierre de la tarea
+## 9. Cierre de la tarea
 
 Antes de finalizar:
 
@@ -178,4 +205,5 @@ Antes de finalizar:
 3. Confirmar que no se incluyeron secretos ni archivos ignorados.
 4. Actualizar README, Swagger, `.env.example` o migraciones si aplica.
 5. Dejar commits claros y la rama en un estado comprensible.
-6. Informar commit, rama, pruebas ejecutadas y cualquier pendiente.
+6. Abrir el PR con la plantilla obligatoria.
+7. Informar commit, rama, pruebas ejecutadas y cualquier pendiente.
