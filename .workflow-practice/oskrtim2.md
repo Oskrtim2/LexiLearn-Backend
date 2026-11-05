@@ -5,3 +5,4 @@
 - Ejercicio 03
 - Ejercicio 04
 - Ejercicio 05
+- Ejercicio 06
