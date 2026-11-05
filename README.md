@@ -1,109 +1,109 @@
-# Lexi Learn API
+# API de Lexi Learn
 
-Production-oriented NestJS REST API for **Lexi Learn**, an assistive learning platform for elementary and high-school students with dyslexia, ADHD, and Autism Spectrum Disorder (ASD).
+API REST de NestJS orientada a producción para **Lexi Learn**, una plataforma de aprendizaje asistivo para estudiantes de primaria y secundaria con dislexia, TDAH y Trastorno del Espectro Autista (TEA).
 
-The API is a modular monolith with accessibility-aware student authentication, OCR ingestion, cached neural text-to-speech, reading adaptation, and deliberately calm gamification. Clients (web/mobile) consume it independently.
-
----
-
-## Highlights
-
-- Accessible student sign-in using **short PINs**, **signed QR codes**, or **visual icon sequences** — no passwords required.
-- Per-student visual and audio accessibility preferences, persisted and validated.
-- Scanned page ingestion with **PNG / JPEG / WebP** magic-byte validation, a 10 MB hard limit, local **Tesseract** or **AWS Textract** providers, artifact cleanup, and sentence/word offsets.
-- Cached TTS via **Amazon Polly** or **Google Cloud Text-to-Speech**, content-addressed hashes, cross-instance PostgreSQL advisory locks, and short-lived signed MP3 URLs.
-- Spanish/English syllabification, clause-aware micro-sentence chunking, estimated reading time, and a readability index.
-- Sensory-friendly gamification: micro-XP, calm badges, silent celebrations, cumulative focus days, and non-punitive streaks.
-- Strict TypeScript, DTO validation, Swagger/OpenAPI, Helmet, CORS, global rate limiting, and a uniform error envelope.
-- PostgreSQL + Prisma migrations, demo seed data, Docker assets, unit tests, and end-to-end tests.
+La API es un monolito modular con autenticación de estudiantes adaptada a la accesibilidad, ingesta OCR, texto a voz neuronal en caché, adaptación de la lectura y una gamificación deliberadamente calmada. Los clientes (web/móvil) la consumen de forma independiente.
 
 ---
 
-## Stack
+## Características destacadas
 
-| Concern | Choice |
+- Inicio de sesión accesible para estudiantes mediante **PIN cortos**, **códigos QR firmados** o **secuencias visuales de iconos**; no se requieren contraseñas.
+- Preferencias visuales y de audio por estudiante, persistidas y validadas.
+- Ingesta de páginas escaneadas con validación de **bytes mágicos PNG / JPEG / WebP**, límite estricto de 10 MB, proveedores locales **Tesseract** o **AWS Textract**, limpieza de artefactos y offsets de oraciones y palabras.
+- TTS en caché mediante **Amazon Polly** o **Google Cloud Text-to-Speech**, hashes direccionados por contenido, advisory locks de PostgreSQL entre instancias y URLs firmadas de MP3 de corta duración.
+- Silabación en español e inglés, división de microoraciones consciente de cláusulas, tiempo de lectura estimado e índice de legibilidad.
+- Gamificación amigable para los sentidos: micro-XP, insignias suaves, celebraciones silenciosas, días de concentración acumulados y rachas no punitivas.
+- TypeScript estricto, validación de DTOs, Swagger/OpenAPI, Helmet, CORS, limitación de tasa global y un sobre de error uniforme.
+- Migraciones de PostgreSQL + Prisma, datos de demostración, recursos Docker, pruebas unitarias y pruebas end-to-end.
+
+---
+
+## Stack tecnológico
+
+| Aspecto | Elección |
 | --- | --- |
-| Runtime | Node.js 24 (Docker), `>=22` supported |
+| Entorno de ejecución | Node.js 24 (Docker), compatible con `>=22` |
 | Framework | NestJS 12 (ESM) |
-| Language | TypeScript 6, strict mode, `noImplicitAny` |
-| Database | PostgreSQL 17 |
+| Lenguaje | TypeScript 6, modo estricto, `noImplicitAny` |
+| Base de datos | PostgreSQL 17 |
 | ORM | Prisma 6 |
-| Validation | `class-validator`, `class-transformer` |
-| Docs | `@nestjs/swagger` at `/docs` |
-| Auth | Stateless JWT + bcrypt PINs + HMAC visual tokens + signed QR JWTs |
+| Validación | `class-validator`, `class-transformer` |
+| Documentación | `@nestjs/swagger` en `/docs` |
+| Autenticación | JWT sin estado + PINs con bcrypt + tokens visuales HMAC + QR JWT firmados |
 | OCR | Tesseract.js (local) / AWS Textract |
 | TTS | Amazon Polly Neural / Google Cloud TTS |
-| Caching | PostgreSQL content-hash audio cache + advisory locks |
-| Security | Helmet, CORS allow-list, per-route throttling, hashed credentials |
+| Caché | Caché de audio por hash de contenido en PostgreSQL + advisory locks |
+| Seguridad | Helmet, lista permitida de CORS, throttling por ruta, credenciales hasheadas |
 
 ---
 
-## Architecture
+## Arquitectura
 
 ```text
 src/
 ├── common/
-│   ├── auth/                 JWT payload and request identity contracts
+│   ├── auth/                 Contratos de payload JWT e identidad de la petición
 │   ├── decorators/           @Public(), @CurrentStudent()
-│   ├── dto/                  Shared API error response DTO
-│   ├── filters/              Uniform global exception filter
-│   ├── guards/               Global JWT guard, educator API-key guard
-│   ├── middleware/           Request ID propagation
-│   ├── prisma/               Prisma service/module
-│   ├── security/             JWT signing, bcrypt/HMAC hashing
-│   ├── upload/               Image magic-byte pipe
-│   └── validation/           Validation-message flattening
-├── config/                   Env schema + typed configuration
+│   ├── dto/                  DTO compartido para respuestas de error de la API
+│   ├── filters/              Filtro global uniforme de excepciones
+│   ├── guards/               Guard JWT global, guard de API key para educadores
+│   ├── middleware/           Propagación del ID de petición
+│   ├── prisma/               Servicio/módulo de Prisma
+│   ├── security/             Firma JWT, hashing bcrypt/HMAC
+│   ├── upload/               Pipe de bytes mágicos de imágenes
+│   └── validation/           Aplanado de mensajes de validación
+├── config/                   Esquema de entorno + configuración tipada
 └── modules/
-    ├── auth/                 PIN, QR, visual login, token rotation
-    ├── students/             Profile, provisioning, accessibility settings
-    ├── ocr/                  Upload, provider adapters, text structuring
-    ├── tts/                  Provider adapters, cache, signed streaming
-    ├── reading-assistant/    Syllables, micro-chunks, readability
-    ├── gamification/         Sessions, heartbeat, claims, stats
-    └── health/               Liveness + database readiness
+    ├── auth/                 PIN, QR, login visual, rotación de tokens
+    ├── students/             Perfil, aprovisionamiento, ajustes de accesibilidad
+    ├── ocr/                  Subida, adaptadores de proveedor, estructuración de texto
+    ├── tts/                  Adaptadores de proveedor, caché, streaming firmado
+    ├── reading-assistant/    Sílabas, microchunks, legibilidad
+    ├── gamification/         Sesiones, heartbeat, recompensas, estadísticas
+    └── health/               Liveness + disponibilidad de la base de datos
 ```
 
-Each feature follows Controller → Service → Repository → Prisma. Pure reading logic is isolated in small testable services. External OCR/TTS integrations are behind provider interfaces and Nest injection tokens, selected by environment configuration.
+Cada funcionalidad sigue Controlador → Servicio → Repositorio → Prisma. La lógica pura de lectura está aislada en servicios pequeños y testeables. Las integraciones externas de OCR/TTS están detrás de interfaces de proveedor y tokens de inyección de Nest, seleccionados mediante configuración de entorno.
 
-### Persistence model
+### Modelo de persistencia
 
-`Student`, `StudentProgress`, `ReadingSession`, `RewardClaim`, `StudentBadge`, `OcrDocument`, `OcrTextChunk`, and `TtsAsset`. See [`prisma/schema.prisma`](prisma/schema.prisma).
+`Student`, `StudentProgress`, `ReadingSession`, `RewardClaim`, `StudentBadge`, `OcrDocument`, `OcrTextChunk` y `TtsAsset`. Consulta [`prisma/schema.prisma`](prisma/schema.prisma).
 
 ---
 
-## Quick start
+## Inicio rápido
 
-### Prerequisites
+### Requisitos previos
 
-- Node.js 22+ (24 recommended)
+- Node.js 22+ (se recomienda 24)
 - npm 10+
-- Docker Desktop (for the provided PostgreSQL container)
-- Optional cloud credentials for Textract/Polly/Google TTS
+- Docker Desktop (para el contenedor PostgreSQL incluido)
+- Credenciales en la nube opcionales para Textract/Polly/Google TTS
 
-### 1. Install and configure
+### 1. Instalar y configurar
 
 ```bash
 npm ci
 cp .env.example .env        # PowerShell: Copy-Item .env.example .env
 ```
 
-Generate independent 32-byte secrets for the four signing secrets:
+Genera secretos independientes de 32 bytes para los cuatro secretos de firma:
 
 ```bash
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
-Set at minimum:
+Configura como mínimo:
 
 - `DATABASE_URL`
 - `JWT_ACCESS_SECRET`
 - `QR_TOKEN_SECRET`
 - `VISUAL_TOKEN_SECRET`
 - `TTS_URL_SIGNING_SECRET`
-- `ADMIN_API_KEY` (educator provisioning key; 24+ chars)
+- `ADMIN_API_KEY` (clave de aprovisionamiento para educadores; 24+ caracteres)
 
-### 2. Start PostgreSQL and apply migrations
+### 2. Iniciar PostgreSQL y aplicar migraciones
 
 ```bash
 docker compose up -d postgres
@@ -111,116 +111,116 @@ npm run prisma:migrate:dev
 npm run prisma:seed
 ```
 
-For a non-development environment:
+Para un entorno que no sea de desarrollo:
 
 ```bash
 npm run prisma:migrate
 ```
 
-### 3. Run the API
+### 3. Ejecutar la API
 
 ```bash
 npm run start:dev
-# production build:
+# compilación de producción:
 npm run build && npm run start:prod
 ```
 
-- API base URL: `http://localhost:3000/api/v1`
+- URL base de la API: `http://localhost:3000/api/v1`
 - Swagger UI: `http://localhost:3000/docs`
 - Health: `http://localhost:3000/api/v1/health`
 
-### Demo students (development seed only)
+### Estudiantes de demostración (solo seed de desarrollo)
 
-| Student code | PIN | Visual sequence |
+| Código de estudiante | PIN | Secuencia visual |
 | --- | --- | --- |
 | `LEX-001` | `4821` | `star → moon → leaf` |
 | `LEX-002` | `7350` | `sun → cloud → flower` |
 
-Seeded accounts are for local development. Never run the demo seed in production.
+Las cuentas del seed son para desarrollo local. Nunca ejecutes el seed de demostración en producción.
 
-### Docker application profile
+### Perfil de aplicación con Docker
 
 ```bash
 docker compose --profile app up --build
 ```
 
-This builds the API, starts PostgreSQL, waits for health, applies migrations, and starts the compiled server. It reads `.env`; the compose file overrides `DATABASE_URL` to the internal `postgres` hostname and sets `NODE_ENV=production`.
+Esto compila la API, inicia PostgreSQL, espera el health check, aplica migraciones e inicia el servidor compilado. Lee `.env`; el archivo compose sobrescribe `DATABASE_URL` con el hostname interno `postgres` y establece `NODE_ENV=production`.
 
 ---
 
-## Environment reference
+## Referencia de variables de entorno
 
-| Variable | Default | Purpose |
+| Variable | Valor por defecto | Propósito |
 | --- | --- | --- |
-| `NODE_ENV` | `development` | `development`, `test`, or `production` |
-| `PORT` | `3000` | HTTP port |
-| `API_PREFIX` | `api/v1` | Global route prefix |
-| `PUBLIC_BASE_URL` | `http://localhost:3000` | Absolute base for signed audio URLs |
-| `CORS_ORIGINS` | `http://localhost:5173` | Comma-separated allow-list; empty disables CORS |
-| `TRUST_PROXY` | `false` | Trust one reverse-proxy hop |
-| `DOCS_ENABLED` | `true` | Enable Swagger UI |
-| `DATABASE_URL` | — | PostgreSQL connection string |
-| `JWT_ACCESS_SECRET` | — | ≥32-char access-token secret |
-| `JWT_ACCESS_TTL_SECONDS` | `43200` | Student access-token lifetime |
-| `QR_TOKEN_SECRET` | — | ≥32-char QR signing secret |
-| `QR_TOKEN_TTL_SECONDS` | `31536000` | QR lifetime |
-| `VISUAL_TOKEN_SECRET` | — | ≥32-char HMAC secret for visual sequences |
-| `ADMIN_API_KEY` | — | Educator-only provisioning key |
-| `BCRYPT_ROUNDS` | `12` | PIN hashing cost (10–15) |
-| `LOGIN_MAX_ATTEMPTS` | `5` | Failed attempts before temporary lock |
-| `LOGIN_LOCK_MINUTES` | `15` | Account pause duration |
-| `TTS_URL_SIGNING_SECRET` | — | ≥32-char independent audio URL secret |
-| `TTS_URL_TTL_SECONDS` | `3600` | Signed audio URL lifetime |
-| `THROTTLE_TTL_MS` | `60000` | Global rate-limit window |
-| `THROTTLE_LIMIT` | `300` | Global requests per IP per window |
-| `OCR_PROVIDER` | `tesseract` | `tesseract` or `textract` |
-| `OCR_LANGUAGES` | `eng` | Tesseract language packs, e.g. `eng+spa` |
-| `OCR_TEXT_LOCALE` | `en` | `Intl.Segmenter` locale, e.g. `es` |
-| `TESSERACT_CACHE_PATH` | `.tesseract-cache` | Writable language-data cache directory |
-| `TTS_PROVIDER` | `aws` | `aws` or `google` |
-| `AWS_REGION` | `us-east-1` | Polly/Textract region |
+| `NODE_ENV` | `development` | `development`, `test` o `production` |
+| `PORT` | `3000` | Puerto HTTP |
+| `API_PREFIX` | `api/v1` | Prefijo global de rutas |
+| `PUBLIC_BASE_URL` | `http://localhost:3000` | Base absoluta para URLs de audio firmadas |
+| `CORS_ORIGINS` | `http://localhost:5173` | Lista permitida separada por comas; vacía desactiva CORS |
+| `TRUST_PROXY` | `false` | Confiar en un salto de proxy inverso |
+| `DOCS_ENABLED` | `true` | Habilitar Swagger UI |
+| `DATABASE_URL` | — | Cadena de conexión de PostgreSQL |
+| `JWT_ACCESS_SECRET` | — | Secreto de 32+ caracteres para tokens de acceso |
+| `JWT_ACCESS_TTL_SECONDS` | `43200` | Duración del token de acceso del estudiante |
+| `QR_TOKEN_SECRET` | — | Secreto de 32+ caracteres para firma QR |
+| `QR_TOKEN_TTL_SECONDS` | `31536000` | Duración del QR |
+| `VISUAL_TOKEN_SECRET` | — | Secreto HMAC de 32+ caracteres para secuencias visuales |
+| `ADMIN_API_KEY` | — | Clave exclusiva para aprovisionamiento por educadores |
+| `BCRYPT_ROUNDS` | `12` | Coste del hashing de PIN (10–15) |
+| `LOGIN_MAX_ATTEMPTS` | `5` | Intentos fallidos antes del bloqueo temporal |
+| `LOGIN_LOCK_MINUTES` | `15` | Duración de la pausa de la cuenta |
+| `TTS_URL_SIGNING_SECRET` | — | Secreto independiente de 32+ caracteres para URLs de audio |
+| `TTS_URL_TTL_SECONDS` | `3600` | Duración de la URL de audio firmada |
+| `THROTTLE_TTL_MS` | `60000` | Ventana global de limitación de tasa |
+| `THROTTLE_LIMIT` | `300` | Solicitudes globales por IP por ventana |
+| `OCR_PROVIDER` | `tesseract` | `tesseract` o `textract` |
+| `OCR_LANGUAGES` | `eng` | Paquetes de idioma de Tesseract, por ejemplo `eng+spa` |
+| `OCR_TEXT_LOCALE` | `en` | Configuración regional de `Intl.Segmenter`, por ejemplo `es` |
+| `TESSERACT_CACHE_PATH` | `.tesseract-cache` | Directorio de caché de datos de idioma con permisos de escritura |
+| `TTS_PROVIDER` | `aws` | `aws` o `google` |
+| `AWS_REGION` | `us-east-1` | Región de Polly/Textract |
 | `AWS_POLLY_ENGINE` | `neural` | `neural`, `standard`, `generative`, `long-form` |
-| `AWS_POLLY_VOICE_*` | demo voices | Voice mapping for each persona |
-| `GOOGLE_APPLICATION_CREDENTIALS` | — | Service-account JSON path; ADC is used when empty |
-| `GOOGLE_TTS_LANGUAGE_CODE` | `en-US` | Google TTS language |
-| `GOOGLE_TTS_VOICE_*` | demo voices | Voice mapping for each persona |
+| `AWS_POLLY_VOICE_*` | voces demo | Asignación de voz para cada persona |
+| `GOOGLE_APPLICATION_CREDENTIALS` | — | Ruta al JSON de la cuenta de servicio; se usa ADC cuando está vacía |
+| `GOOGLE_TTS_LANGUAGE_CODE` | `en-US` | Idioma de Google TTS |
+| `GOOGLE_TTS_VOICE_*` | voces demo | Asignación de voz para cada persona |
 
-All secrets are validated at startup. The API will not boot with missing or short secrets.
+Todos los secretos se validan al iniciar. La API no arrancará si faltan secretos o son demasiado cortos.
 
 ---
 
-## API summary
+## Resumen de la API
 
-All routes are under `/api/v1`. Student routes require `Authorization: Bearer <accessToken>` unless specified otherwise.
+Todas las rutas están bajo `/api/v1`. Las rutas de estudiantes requieren `Authorization: Bearer <accessToken>` salvo que se indique lo contrario.
 
-| Method | Route | Auth | Description |
+| Método | Ruta | Autenticación | Descripción |
 | --- | --- | --- | --- |
-| GET | `/health` | Public | Database readiness |
-| POST | `/students` | `x-admin-api-key` | Provision a student |
-| POST | `/auth/login/pin` | Public | Student code + PIN login |
-| POST | `/auth/login/qr` | Public | Login with signed QR token |
-| POST | `/auth/login/visual` | Public | Login with icon sequence |
-| POST | `/auth/qr-token` | Student | Retrieve/rotate a QR token |
-| POST | `/auth/visual-token` | Student | Set the visual icon sequence |
-| PATCH | `/auth/pin` | Student | Change PIN |
-| GET | `/students/me` | Student | Profile + preferences |
-| PATCH | `/students/me/preferences` | Student | Update accessibility settings |
-| POST | `/ocr/extract` | Student | Upload an image and structure text |
-| POST | `/tts/synthesize` | Student | Synthesize or reuse cached speech |
-| GET | `/tts/audio/:assetId?token=...` | Signed URL | Stream MP3 with byte-range support |
-| POST | `/reading-assistant/process-text` | Student | Syllables, chunks, readability |
-| POST | `/gamification/sessions/start` | Student | Start or resume a session |
-| POST | `/gamification/sessions/heartbeat` | Student | Record activity |
-| POST | `/gamification/rewards/claim` | Student | Idempotently record a completed task |
-| GET | `/gamification/students/:id/stats` | Student (self) | Aggregate progress |
+| GET | `/health` | Público | Disponibilidad de la base de datos |
+| POST | `/students` | `x-admin-api-key` | Aprovisionar un estudiante |
+| POST | `/auth/login/pin` | Público | Inicio de sesión con código de estudiante + PIN |
+| POST | `/auth/login/qr` | Público | Inicio de sesión con token QR firmado |
+| POST | `/auth/login/visual` | Público | Inicio de sesión con secuencia de iconos |
+| POST | `/auth/qr-token` | Estudiante | Obtener/rotar un token QR |
+| POST | `/auth/visual-token` | Estudiante | Configurar la secuencia visual de iconos |
+| PATCH | `/auth/pin` | Estudiante | Cambiar el PIN |
+| GET | `/students/me` | Estudiante | Perfil + preferencias |
+| PATCH | `/students/me/preferences` | Estudiante | Actualizar ajustes de accesibilidad |
+| POST | `/ocr/extract` | Estudiante | Subir una imagen y estructurar el texto |
+| POST | `/tts/synthesize` | Estudiante | Sintetizar o reutilizar voz en caché |
+| GET | `/tts/audio/:assetId?token=...` | URL firmada | Transmitir MP3 con soporte de rangos de bytes |
+| POST | `/reading-assistant/process-text` | Estudiante | Sílabas, chunks, legibilidad |
+| POST | `/gamification/sessions/start` | Estudiante | Iniciar o reanudar una sesión |
+| POST | `/gamification/sessions/heartbeat` | Estudiante | Registrar actividad |
+| POST | `/gamification/rewards/claim` | Estudiante | Registrar una tarea completada de forma idempotente |
+| GET | `/gamification/students/:id/stats` | Estudiante (propio) | Progreso agregado |
 
-Interactive schemas and examples are available at `/docs`.
+Los esquemas interactivos y ejemplos están disponibles en `/docs`.
 
-### Accessible authentication
+### Autenticación accesible
 
-Student codes are normalized to uppercase. PINs are 4–6 digits and hashed with bcrypt; they are never returned. Failed logins are tracked per student and temporarily lock the account after the configured threshold. Login attempts are also rate-limited per IP.
+Los códigos de estudiante se normalizan a mayúsculas. Los PIN tienen entre 4 y 6 dígitos y se hashean con bcrypt; nunca se devuelven. Los inicios de sesión fallidos se registran por estudiante y bloquean temporalmente la cuenta después del umbral configurado. Los intentos de inicio de sesión también están limitados por IP.
 
-Provisioning requires the educator API key:
+El aprovisionamiento requiere la clave de API del educador:
 
 ```bash
 curl -X POST http://localhost:3000/api/v1/students \
@@ -236,29 +236,29 @@ curl -X POST http://localhost:3000/api/v1/students \
   }'
 ```
 
-The response includes a long-lived signed `qrToken`. Clients may render it as a QR code. Passing `{"rotate": true}` to `POST /auth/qr-token` invalidates every previously issued QR token for that student.
+La respuesta incluye un `qrToken` firmado de larga duración. Los clientes pueden renderizarlo como un código QR. Enviar `{"rotate": true}` a `POST /auth/qr-token` invalida todos los tokens QR emitidos previamente para ese estudiante.
 
-A visual sequence is stored as an HMAC digest (scoped by student code), not as plain icons. Visual sign-in is intentionally complemented by rate limiting and account locks.
+Una secuencia visual se almacena como un digest HMAC (delimitado por el código del estudiante), no como iconos en texto plano. El inicio de sesión visual se complementa intencionalmente con limitación de tasa y bloqueos de cuenta.
 
-### Accessibility preferences
+### Preferencias de accesibilidad
 
-`PATCH /students/me/preferences` accepts any subset of:
+`PATCH /students/me/preferences` acepta cualquier subconjunto de:
 
-| Group | Field | Allowed values |
+| Grupo | Campo | Valores permitidos |
 | --- | --- | --- |
 | Visual | `preferredFont` | `OPEN_DYSLEXIC`, `ATKINSON_HYPERLEGIBLE`, `VERDANA`, `ARIAL`, `COMIC_SANS` |
 | Visual | `letterSpacing` | `0`–`0.3` |
 | Visual | `lineHeight` | `1`–`3` |
 | Visual | `contrastMode` | `LIGHT`, `DARK`, `PASTEL`, `HIGH_CONTRAST` |
-| Visual | `lineFocusWindowSize` | `1`–`10` lines |
+| Visual | `lineFocusWindowSize` | `1`–`10` líneas |
 | Audio | `ttsVoicePersona` | `CHILD_FRIENDLY`, `CALM_NARRATOR`, `NEURAL_FRIENDLY` |
 | Audio | `speechRate` | `0.75`–`1.25` |
 | Audio | `speechPitch` | `0.75`–`1.5` |
 | Audio | `highlightPacing` | `SLOW`, `BALANCED`, `FAST` |
-| Sensory | `reduceMotion` | boolean |
-| Sensory | `soundEffects` | boolean (default `false`) |
+| Sensorial | `reduceMotion` | booleano |
+| Sensorial | `soundEffects` | booleano (por defecto `false`) |
 
-### OCR ingestion
+### Ingesta OCR
 
 ```bash
 curl -X POST http://localhost:3000/api/v1/ocr/extract \
@@ -266,18 +266,18 @@ curl -X POST http://localhost:3000/api/v1/ocr/extract \
   -F "image=@page.png;type=image/png"
 ```
 
-The server:
+El servidor:
 
-1. Enforces multipart limits and rejects files **≥ 10 MB**.
-2. Verifies actual PNG/JPEG/WebP magic bytes instead of trusting the client MIME type.
-3. Sends the buffer to the configured provider.
-4. Removes control characters, repeated running headers/footers, page labels, isolated page numbers, symbol-only noise, and hyphenated line wraps.
-5. Segments paragraphs → sentences → words with global character offsets.
-6. Persists the document and each sentence as a `chunkId` usable by TTS.
+1. Aplica límites multipart y rechaza archivos **≥ 10 MB**.
+2. Verifica los bytes mágicos reales de PNG/JPEG/WebP en lugar de confiar en el MIME del cliente.
+3. Envía el buffer al proveedor configurado.
+4. Elimina caracteres de control, encabezados/pies de página repetidos, etiquetas de página, números de página aislados, ruido de solo símbolos y saltos de línea con guiones.
+5. Segmenta párrafos → oraciones → palabras con offsets globales de caracteres.
+6. Persiste el documento y cada oración como un `chunkId` utilizable por TTS.
 
-The image itself is not persisted. Raw OCR output and normalized text are retained in PostgreSQL.
+La imagen no se persiste. La salida OCR cruda y el texto normalizado se conservan en PostgreSQL.
 
-### Text-to-speech
+### Texto a voz
 
 ```bash
 curl -X POST http://localhost:3000/api/v1/tts/synthesize \
@@ -289,9 +289,9 @@ curl -X POST http://localhost:3000/api/v1/tts/synthesize \
   }'
 ```
 
-Or supply raw `text` instead of `textChunkId` (exactly one is required). TTS caps a single synthesis at 5,000 characters.
+También puedes enviar `text` en crudo en lugar de `textChunkId` (se requiere exactamente uno). TTS limita una síntesis individual a 5000 caracteres.
 
-Response:
+Respuesta:
 
 ```json
 {
@@ -311,15 +311,15 @@ Response:
 }
 ```
 
-Cache behavior:
+Comportamiento de la caché:
 
-- The cache key is SHA-256 over normalized text + provider + voice ID + speed + pitch.
-- Cache hits are served without invoking the provider.
-- Concurrent misses are serialized with a PostgreSQL transaction-scoped advisory lock and re-checked, preventing duplicate billing across API replicas sharing the database.
-- Audio is stored as `BYTEA`; replace this with object storage (S3/GCS) and a CDN for very high volume. Maintain a retention policy using `lastAccessedAt`.
-- Signed URLs are independent of the bearer token and can be used directly by `<audio>`. HTTP byte ranges are supported (`206 Partial Content`).
+- La clave de caché es SHA-256 sobre el texto normalizado + proveedor + ID de voz + velocidad + tono.
+- Los aciertos de caché se sirven sin invocar al proveedor.
+- Los fallos concurrentes se serializan con un advisory lock transaccional de PostgreSQL y se vuelven a comprobar, evitando la doble facturación entre réplicas de la API que comparten la base de datos.
+- El audio se guarda como `BYTEA`; para volúmenes muy altos, reemplázalo por almacenamiento de objetos (S3/GCS) y un CDN. Mantén una política de retención usando `lastAccessedAt`.
+- Las URLs firmadas son independientes del token bearer y pueden usarse directamente en `<audio>`. Se admiten rangos de bytes HTTP (`206 Partial Content`).
 
-### Reading assistant
+### Asistente de lectura
 
 ```bash
 curl -X POST http://localhost:3000/api/v1/reading-assistant/process-text \
@@ -332,41 +332,41 @@ curl -X POST http://localhost:3000/api/v1/reading-assistant/process-text \
   }'
 ```
 
-The response includes:
+La respuesta incluye:
 
-- `text` — normalized text; every offset refers to this string.
-- `words[]` — global word index, start/end offsets, and syllable breakdown with offsets.
-- `sentences[]` — sentence metadata plus `microChunks[]` split at clauses/conjunctions for ADHD-friendly pacing.
-- `readingTime` — accessible WPM estimate adjusted for syllable density.
-- `difficulty` — Flesch Reading Ease (Spanish Huerta variant or English Flesch), a `0–100` inverted score, and a friendly level.
+- `text` — texto normalizado; todos los offsets se refieren a esta cadena.
+- `words[]` — índice global de palabra, offsets de inicio/fin y desglose silábico con offsets.
+- `sentences[]` — metadatos de oración más `microChunks[]` divididos en cláusulas/conjunciones para un ritmo amigable con el TDAH.
+- `readingTime` — estimación accesible de palabras por minuto ajustada por densidad silábica.
+- `difficulty` — Flesch Reading Ease (variante Huerta para español o Flesch para inglés), una puntuación invertida de `0–100` y un nivel amigable.
 
-Spanish syllabification handles diphthongs, hiatuses, accented weak vowels, digraphs (`ch`, `ll`, `rr`), and inseparable onsets. English support is a documented heuristic; for high-stakes English phonological work, add a dictionary/pattern provider behind the same service boundary.
+La silabación en español maneja diptongos, hiatos, vocales débiles acentuadas, dígrafos (`ch`, `ll`, `rr`) y ataques inseparables. El soporte de inglés es una heurística documentada; para trabajo fonológico de inglés de alta exigencia, añade un proveedor de diccionario/patrones detrás del mismo límite de servicio.
 
-### Gamification
+### Gamificación
 
-| Task | XP |
+| Tarea | XP |
 | --- | ---: |
 | `SENTENCE_COMPLETED` | 5 |
 | `FOCUS_MILESTONE` | 10 |
 | `SESSION_COMPLETED` | 15 |
 | `PAGE_COMPLETED` | 20 |
 
-Key semantics:
+Semántica clave:
 
-- Claims are idempotent by `(studentId, taskId)`. Repeating a claim returns `xpAwarded: 0` and `alreadyClaimed: true`.
-- Only one active reading session is kept per student. Recent matching sessions resume; stale or different-document sessions are quietly marked abandoned and a new one starts.
-- Heartbeat duration is capped by wall-clock time plus a small grace budget, so a client cannot inflate minutes.
-- Missing a day never removes XP, badges, or cumulative focus days. `currentStreak` starts a new gentle count, while `bestStreak` and `focusDays` are preserved.
-- Celebration payloads use `animation: "soft-glow"` and **always** return `soundCue: null`; no aggressive audio or jarring motion instructions are emitted.
-- `SESSION_COMPLETED` with a `sessionId` marks the session complete and updates aggregated stats.
+- Las reclamaciones son idempotentes por `(studentId, taskId)`. Repetir una reclamación devuelve `xpAwarded: 0` y `alreadyClaimed: true`.
+- Solo se mantiene una sesión de lectura activa por estudiante. Las sesiones recientes que coinciden se reanudan; las sesiones obsoletas o con otro documento se marcan silenciosamente como abandonadas y se inicia una nueva.
+- La duración del heartbeat está limitada por el tiempo de reloj más un pequeño margen, así que el cliente no puede inflar los minutos.
+- Faltar un día nunca elimina XP, insignias ni días de concentración acumulados. `currentStreak` comienza una nueva cuenta suave, mientras que `bestStreak` y `focusDays` se conservan.
+- Los payloads de celebración usan `animation: "soft-glow"` y **siempre** devuelven `soundCue: null`; no se emiten audios agresivos ni instrucciones de movimiento bruscas.
+- `SESSION_COMPLETED` con un `sessionId` marca la sesión como completada y actualiza las estadísticas agregadas.
 
-Badges include First gentle step, Sentence explorer, Page wanderer, Focus spark, Steady reader, and Calm finisher. They are descriptive, permanent, and never penalize a child.
+Las insignias incluyen First gentle step, Sentence explorer, Page wanderer, Focus spark, Steady reader y Calm finisher. Son descriptivas, permanentes y nunca penalizan al estudiante.
 
 ---
 
-## Uniform error format
+## Formato uniforme de errores
 
-Every error returns the same JSON shape, including validation, authorization, throttling, Prisma, and unknown errors:
+Cada error devuelve la misma estructura JSON, incluidos errores de validación, autorización, throttling, Prisma y desconocidos:
 
 ```json
 {
@@ -378,39 +378,39 @@ Every error returns the same JSON shape, including validation, authorization, th
 }
 ```
 
-Validation messages are flattened from nested DTOs. Query strings are excluded from `path` so signed audio tokens are never echoed into errors. Request IDs are returned in the `X-Request-Id` response header.
+Los mensajes de validación se aplanan desde DTOs anidados. Las cadenas de consulta se excluyen de `path` para que los tokens de audio firmados nunca se reflejen en los errores. Los IDs de petición se devuelven en la cabecera de respuesta `X-Request-Id`.
 
 ---
 
-## Security and accessibility engineering
+## Ingeniería de seguridad y accesibilidad
 
-- **Stateless JWT** access tokens with issuer/audience checks and separate secrets for access, QR, and signed audio URLs.
-- **bcrypt PIN hashing** plus constant-time dummy comparisons for unknown student codes.
-- **Account lockout** and per-IP, per-route throttling. The default global limit is 300 requests/min/IP; adjust `THROTTLE_LIMIT` for shared classroom NAT, or replace the in-memory throttler storage with Redis for multi-replica deployments.
-- **Helmet** headers, CORS allow-list, JSON body limits, request IDs, and graceful shutdown.
-- **Upload hardening**: 10 MB multipart cap, magic-byte verification, no path writes, and a custom validation pipe.
-- **CSP is intentionally disabled** because the service returns JSON and hosts Swagger UI. Add a strict CSP at the edge if you expose more browser-rendered content.
-- **Accessibility defaults**: OpenDyslexic, 1.6 line height, reduced motion, sound effects off, child-friendly voice, 1× speed.
-- **No punitive gamification**: no XP loss, no badge revocation, no loud celebration payloads, and cumulative focus days.
-- **Privacy**: images are not persisted; OCR text and audio are persisted. Delete student records through the database/administrative process to cascade their content. TTS audio is content-addressed and not linked to a student.
+- **Tokens de acceso JWT sin estado** con verificación de emisor/audiencia y secretos separados para acceso, QR y URLs de audio firmadas.
+- **Hash de PIN con bcrypt** y comparaciones ficticias de tiempo constante para códigos de estudiante desconocidos.
+- **Bloqueo de cuenta** y limitación de tasa por IP y por ruta. El límite global por defecto es de 300 solicitudes/min/IP; ajusta `THROTTLE_LIMIT` para NAT compartido en aulas o reemplaza el almacenamiento en memoria del throttler por Redis para despliegues con múltiples réplicas.
+- **Cabeceras de Helmet**, lista permitida de CORS, límites del cuerpo JSON, IDs de petición y cierre ordenado.
+- **Endurecimiento de subidas**: límite multipart de 10 MB, verificación de bytes mágicos, sin escrituras de rutas y un pipe de validación personalizado.
+- **CSP se desactiva intencionalmente** porque el servicio devuelve JSON y aloja Swagger UI. Añade una CSP estricta en el borde si expones más contenido renderizado en navegador.
+- **Valores por defecto de accesibilidad**: OpenDyslexic, altura de línea 1.6, movimiento reducido, efectos de sonido desactivados, voz amigable para estudiantes, velocidad 1×.
+- **Gamificación no punitiva**: sin pérdida de XP, sin revocación de insignias, sin payloads de celebración ruidosos y días de concentración acumulados.
+- **Privacidad**: las imágenes no se persisten; el texto OCR y el audio sí. Elimina los registros de estudiantes mediante la base de datos o un proceso administrativo para eliminar en cascada su contenido. El audio TTS está direccionado por contenido y no vinculado a un estudiante.
 
-### Horizontal scaling notes
+### Notas de escalado horizontal
 
-The TTS cache is safe across replicas because it uses PostgreSQL uniqueness and advisory locks. Rate limiting is in-memory per replica by default; replace `ThrottlerStorage` with a Redis implementation when scaling horizontally. Signed URLs work across replicas because every instance shares `TTS_URL_SIGNING_SECRET`.
+La caché TTS es segura entre réplicas porque usa unicidad y advisory locks de PostgreSQL. La limitación de tasa es en memoria por réplica por defecto; reemplaza `ThrottlerStorage` por una implementación Redis al escalar horizontalmente. Las URLs firmadas funcionan entre réplicas porque todas comparten `TTS_URL_SIGNING_SECRET`.
 
 ---
 
-## Development commands
+## Comandos de desarrollo
 
 ```bash
-npm run start:dev        # watch mode
-npm run build            # compile to dist/
-npm run start:prod       # run compiled API
-npm run typecheck        # strict TypeScript, no emit
-npm run lint             # Oxlint type-aware (explicit any is an error)
-npm run test             # unit tests
-npm run test:cov         # coverage
-npm run test:e2e         # PostgreSQL-backed end-to-end tests
+npm run start:dev        # modo watch
+npm run build            # compilar a dist/
+npm run start:prod       # ejecutar la API compilada
+npm run typecheck        # TypeScript estricto, sin emitir
+npm run lint             # Oxlint con tipos (any explícito es un error)
+npm run test             # pruebas unitarias
+npm run test:cov         # cobertura
+npm run test:e2e         # pruebas end-to-end con PostgreSQL
 npm run format           # Prettier
 npm run prisma:generate
 npm run prisma:migrate:dev
@@ -418,29 +418,29 @@ npm run prisma:migrate
 npm run prisma:seed
 ```
 
-E2E tests require a migrated PostgreSQL database and a valid `.env`. They provision a temporary student, override OCR/TTS with deterministic test providers, exercise the HTTP surface, and clean up their data.
+Las pruebas E2E requieren una base de datos PostgreSQL migrada y un `.env` válido. Crean un estudiante temporal, sustituyen OCR/TTS por proveedores deterministas de prueba, ejercitan la superficie HTTP y limpian sus datos.
 
-Current verification status on this workspace:
+Estado de verificación actual en este workspace:
 
-- `npm run typecheck` — passing
-- `npm run lint` — passing
-- `npm run test` — 19 unit tests passing
-- `npm run test:e2e` — 8 endpoint tests passing
-- `npm run build` — passing
-
----
-
-## Operational notes and extension points
-
-- **OCR**: local Tesseract jobs are serialized behind one worker to avoid CPU thrash. Use `OCR_PROVIDER=textract` or a dedicated OCR worker pool for parallel volume. Tesseract language data is downloaded on first use.
-- **TTS provider setup**: configure AWS credentials through the environment/IAM role, or set `GOOGLE_APPLICATION_CREDENTIALS`; Google ADC is also supported. Both providers produce `audio/mpeg`.
-- **Database**: run `prisma migrate deploy` before each release. The seed is idempotent but intended for development.
-- **Observability**: request IDs are emitted, but production tracing/metrics/error aggregation should be attached at the deployment platform or via an OpenTelemetry agent.
-- **Retention**: configure cleanup for `TtsAsset` based on `lastAccessedAt`, and define an OCR text retention policy for minors' data.
-- **Future providers**: implement `OcrProvider` or `TtsProvider`, register it in the module factory, and select it with the existing environment variables. No controller/service changes are required.
+- `npm run typecheck` — pasando
+- `npm run lint` — pasando
+- `npm run test` — 19 pruebas unitarias pasando
+- `npm run test:e2e` — 8 pruebas de endpoints pasando
+- `npm run build` — pasando
 
 ---
 
-## License
+## Notas operativas y puntos de extensión
 
-UNLICENSED — proprietary project configuration. Add the project’s actual license before distribution.
+- **OCR**: los trabajos locales de Tesseract se serializan detrás de un único worker para evitar un uso excesivo de CPU. Usa `OCR_PROVIDER=textract` o un pool dedicado de workers OCR para volumen paralelo. Los datos de idioma de Tesseract se descargan en el primer uso.
+- **Configuración del proveedor TTS**: configura credenciales de AWS mediante el entorno o un rol IAM, o establece `GOOGLE_APPLICATION_CREDENTIALS`; también se admite Google ADC. Ambos proveedores producen `audio/mpeg`.
+- **Base de datos**: ejecuta `prisma migrate deploy` antes de cada despliegue. El seed es idempotente pero está pensado para desarrollo.
+- **Observabilidad**: se emiten IDs de petición, pero el trazado, las métricas y la agregación de errores de producción deben añadirse en la plataforma de despliegue o mediante un agente de OpenTelemetry.
+- **Retención**: configura la limpieza de `TtsAsset` según `lastAccessedAt` y define una política de retención del texto OCR para datos de menores.
+- **Proveedores futuros**: implementa `OcrProvider` o `TtsProvider`, regístralo en la fábrica del módulo y selecciónalo con las variables de entorno existentes. No se requieren cambios en controladores ni servicios.
+
+---
+
+## Licencia
+
+UNLICENSED — configuración propietaria del proyecto. Añade la licencia real del proyecto antes de distribuirlo.
