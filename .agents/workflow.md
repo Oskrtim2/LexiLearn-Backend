@@ -8,7 +8,7 @@ El repositorio se trabaja con las siguientes cuentas:
 
 | Cuenta | Rol |
 | --- | --- |
-| `@Oskrtim2` | Propietario y administrador del repositorio |
+| `@Oskrtim2` | Propietario, administrador, aprobador y responsable del merge de pull requests |
 | `@juansem08` | Colaborador y revisor |
 
 Reglas de identidad:
@@ -109,6 +109,16 @@ Reglas:
   - El autor nunca puede aprobar su propio PR.
 - La adaptación a una sola aprobación se debe a que el equipo actual tiene dos cuentas. Si se incorporan más integrantes, la regla puede elevarse a 2 aprobaciones.
 - Las aprobaciones deben emitirse sin comentarios de revisión: solo aprobar. Cualquier observación debe dejarse como comentario en el hilo antes de aprobar.
+
+### Cuenta de aceptación y merge
+
+- La cuenta `@Oskrtim2` es la responsable de aceptar y mergear todos los pull requests dirigidos a este repositorio.
+- PR de `@juansem08`: `@Oskrtim2` revisa, aprueba y ejecuta el merge.
+- PR de `@Oskrtim2`: `@juansem08` otorga la aprobación requerida y `@Oskrtim2` ejecuta el merge. GitHub no permite que el autor apruebe su propio PR.
+- PR de otras cuentas: `@Oskrtim2` revisa, aprueba si corresponde y ejecuta el merge.
+- La aceptación con `@Oskrtim2` no exime de los checks de calidad, la resolución de conflictos, las reglas de protección de `main`, la revisión de seguridad ni las validaciones de accesibilidad.
+- No se debe hacer merge de un PR con checks en rojo, conflictos sin resolver o cambios no revisados.
+- Después del merge, eliminar la rama remota cuando ya no sea necesaria.
 - No hacer merge si:
   - Falta la aprobación requerida.
   - Hay conflictos sin resolver.

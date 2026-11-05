@@ -44,10 +44,14 @@ git pull --ff-only origin main
 - Si hay cambios locales sin commitear, no borrarlos ni sobrescribirlos. Preguntar antes de continuar.
 - `main` es la rama estable y debe permanecer desplegable.
 - Equipo autorizado del repositorio:
-  - `@Oskrtim2`: propietario y administrador del repositorio.
+  - `@Oskrtim2`: propietario, administrador, aprobador y cuenta responsable del merge de pull requests.
   - `@juansem08`: colaborador y revisor.
 - Cada integrante sube sus ramas con su propia cuenta de GitHub. Nunca suplantar la cuenta del otro ni compartir tokens o credenciales.
+- Todos los pull requests de este repositorio se aceptan y se mergean con la cuenta `@Oskrtim2`.
 - Un pull request requiere la aprobación de la otra cuenta. El autor no puede aprobar su propio PR.
+- Si el PR es de `@Oskrtim2`, GitHub no permite la autoaprobación: `@juansem08` debe aprobarlo y `@Oskrtim2` ejecuta la aceptación/merge.
+- Si el PR es de `@juansem08`, `@Oskrtim2` lo revisa, lo aprueba y ejecuta el merge.
+- La aceptación con `@Oskrtim2` no autoriza a saltarse checks, conflictos, protecciones de `main` ni revisiones de seguridad o accesibilidad.
 - Para cambios funcionales (código, esquema, seguridad, tests) crear una rama desde `main`:
   - `feature/<descripcion>`
   - `fix/<descripcion>`
