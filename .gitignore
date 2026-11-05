@@ -1,0 +1,14 @@
+node_modules/
+dist/
+coverage/
+.env
+.env.*
+!.env.example
+*.log
+*.traineddata
+.tesseract-cache/
+tsconfig.build.tsbuildinfo
+.idea/
+.vscode/
+.DS_Store
+prisma/dev.db
