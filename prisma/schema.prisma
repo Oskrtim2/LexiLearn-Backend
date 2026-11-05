@@ -1,0 +1,210 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum FontFamily {
+  OPEN_DYSLEXIC
+  ATKINSON_HYPERLEGIBLE
+  VERDANA
+  ARIAL
+  COMIC_SANS
+}
+
+enum ContrastMode {
+  LIGHT
+  DARK
+  PASTEL
+  HIGH_CONTRAST
+}
+
+enum TtsVoicePersona {
+  CHILD_FRIENDLY
+  CALM_NARRATOR
+  NEURAL_FRIENDLY
+}
+
+enum HighlightPacing {
+  SLOW
+  BALANCED
+  FAST
+}
+
+enum ReadingSessionStatus {
+  ACTIVE
+  COMPLETED
+  ABANDONED
+}
+
+enum RewardTaskType {
+  SENTENCE_COMPLETED
+  PAGE_COMPLETED
+  SESSION_COMPLETED
+  FOCUS_MILESTONE
+}
+
+model Student {
+  id                      String              @id @default(uuid()) @db.Uuid
+  studentCode             String              @unique
+  displayName             String
+  gradeLevel              Int
+  classroomCode           String?
+  pinHash                 String
+  visualTokenHash         String?
+  qrTokenVersion          Int                 @default(1)
+  failedLoginAttempts     Int                 @default(0)
+  loginLockedUntil        DateTime?
+  lastLoginAt             DateTime?
+
+  preferredFont           FontFamily          @default(OPEN_DYSLEXIC)
+  letterSpacing           Float               @default(0.05)
+  lineHeight              Float               @default(1.6)
+  contrastMode            ContrastMode        @default(LIGHT)
+  lineFocusWindowSize     Int                 @default(3)
+  ttsVoicePersona         TtsVoicePersona     @default(CHILD_FRIENDLY)
+  speechRate              Float               @default(1.0)
+  speechPitch             Float               @default(1.0)
+  highlightPacing         HighlightPacing     @default(BALANCED)
+  reduceMotion            Boolean             @default(true)
+  soundEffects            Boolean             @default(false)
+
+  createdAt               DateTime            @default(now())
+  updatedAt               DateTime            @updatedAt
+
+  progress                StudentProgress?
+  readingSessions         ReadingSession[]
+  ocrDocuments            OcrDocument[]
+  rewardClaims            RewardClaim[]
+  badges                  StudentBadge[]
+
+  @@index([classroomCode])
+}
+
+model StudentProgress {
+  id                    String   @id @default(uuid()) @db.Uuid
+  studentId             String   @unique @db.Uuid
+  totalXp               Int      @default(0)
+  level                 Int      @default(1)
+  currentFocusStreak    Int      @default(0)
+  bestFocusStreak       Int      @default(0)
+  totalFocusDays        Int      @default(0)
+  lastActiveDate        DateTime? @db.Date
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  student               Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+}
+
+model ReadingSession {
+  id                 String               @id @default(uuid()) @db.Uuid
+  studentId          String               @db.Uuid
+  documentId         String?              @db.Uuid
+  status             ReadingSessionStatus @default(ACTIVE)
+  startedAt          DateTime             @default(now())
+  lastHeartbeatAt    DateTime             @default(now())
+  endedAt            DateTime?
+  durationSeconds    Int                  @default(0)
+  chunksProcessed    Int                  @default(0)
+  interactions       Int                  @default(0)
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+
+  student            Student              @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  document           OcrDocument?         @relation(fields: [documentId], references: [id], onDelete: SetNull)
+  rewardClaims       RewardClaim[]
+
+  @@index([studentId, status])
+  @@index([studentId, startedAt])
+}
+
+model RewardClaim {
+  id            String         @id @default(uuid()) @db.Uuid
+  studentId     String         @db.Uuid
+  sessionId     String?        @db.Uuid
+  taskType      RewardTaskType
+  taskId        String
+  xpAwarded     Int
+  createdAt     DateTime       @default(now())
+
+  student       Student        @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  session       ReadingSession? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+
+  @@unique([studentId, taskId])
+  @@index([studentId, createdAt])
+}
+
+model StudentBadge {
+  id          String   @id @default(uuid()) @db.Uuid
+  studentId   String   @db.Uuid
+  code        String
+  name        String
+  description String
+  icon        String
+  earnedAt    DateTime @default(now())
+
+  student     Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, code])
+  @@index([studentId, earnedAt])
+}
+
+model OcrDocument {
+  id               String          @id @default(uuid()) @db.Uuid
+  studentId        String          @db.Uuid
+  originalFilename String
+  mimeType         String
+  sizeBytes        Int
+  provider         String
+  confidence       Float?
+  processingMs     Int
+  rawText          String          @db.Text
+  normalizedText   String          @db.Text
+  blocks           Json
+  wordCount        Int
+  sentenceCount    Int
+  paragraphCount   Int
+  createdAt        DateTime        @default(now())
+
+  student          Student         @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  chunks           OcrTextChunk[]
+  readingSessions  ReadingSession[]
+
+  @@index([studentId, createdAt])
+}
+
+model OcrTextChunk {
+  id          String      @id @default(uuid()) @db.Uuid
+  documentId  String      @db.Uuid
+  order       Int
+  text        String      @db.Text
+  startOffset Int
+  endOffset   Int
+  wordCount   Int
+  createdAt   DateTime    @default(now())
+
+  document    OcrDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@unique([documentId, order])
+  @@index([documentId])
+}
+
+model TtsAsset {
+  id             String   @id @default(uuid()) @db.Uuid
+  contentHash    String   @unique
+  provider       String
+  voiceId        String
+  speed          Float
+  pitch          Float
+  mimeType       String   @default("audio/mpeg")
+  audioData      Bytes
+  byteSize       Int
+  durationMs     Int?
+  createdAt      DateTime @default(now())
+  lastAccessedAt DateTime @default(now())
+
+  @@index([lastAccessedAt])
+}
